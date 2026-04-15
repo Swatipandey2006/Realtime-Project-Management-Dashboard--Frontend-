@@ -7,10 +7,13 @@ export const EmployeeManagement = () => {
   const { user } = useAuth();
   const { users, tasks } = useApp();
 
-  const teamMembers = users.filter(u => u.managerId === user?.id);
+  // Show all employees to the manager so they can interact with the whole team
+  const teamMembers = users.filter(u => u.role === 'employee');
 
-  const getEmployeeStats = (employeeId) => {
-    const employeeTasks = tasks.filter(t => t.assignedTo === employeeId);
+
+  const getEmployeeStats = (emp) => {
+    const empId = emp.id || emp._id;
+    const employeeTasks = tasks.filter(t => (t.assignedTo?._id || t.assignedTo) === empId);
 
     return {
       totalTasks: employeeTasks.length,
@@ -19,6 +22,7 @@ export const EmployeeManagement = () => {
       pending: employeeTasks.filter(t => t.status === 'Pending').length
     };
   };
+
 
   return (
     <div>
@@ -39,10 +43,11 @@ export const EmployeeManagement = () => {
           ]}
         >
           {teamMembers.map(employee => {
-            const stats = getEmployeeStats(employee.id);
+            const stats = getEmployeeStats(employee);
 
             return (
-              <TableRow key={employee.id}>
+              <TableRow key={employee.id || employee._id}>
+
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <img
