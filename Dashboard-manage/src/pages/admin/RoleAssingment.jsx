@@ -39,11 +39,11 @@ export const RoleAssignment = () => {
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <Table headers={['User', 'Email', 'Current Role', 'Assign Role', 'Actions']}>
-          {users.map((user) => {
+          {users?.map((user) => {
             const currentRole = roleChanges[user.id] || user.role;
 
             return (
-              <TableRow key={user.id}>
+              <TableRow key={user.id || user._id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <img

@@ -34,13 +34,13 @@ export const UserManagement = () => {
     return matchesSearch && matchesRole;
   });
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!formData.name || !formData.email) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    addUser({
+    const result = await addUser({
       name: formData.name,
       email: formData.email,
       role: formData.role,
@@ -49,22 +49,24 @@ export const UserManagement = () => {
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.name}`
     });
 
-    setShowCreateModal(false);
-    setFormData({
-      name: '',
-      email: '',
-      role: 'employee',
-      status: 'active',
-      managerId: ''
-    });
-
-    toast.success('User created successfully');
+    if (result.success) {
+      setShowCreateModal(false);
+      setFormData({
+        name: '',
+        email: '',
+        role: 'employee',
+        status: 'active',
+        managerId: ''
+      });
+    }
   };
 
-  const handleEdit = () => {
-    if (!selectedUser) return;
 
-    updateUser(selectedUser.id, {
+  const handleEdit = async () => {
+    if (!selectedUser) return;
+    const userId = selectedUser.id || selectedUser._id;
+
+    await updateUser(userId, {
       name: formData.name,
       email: formData.email,
       role: formData.role,
@@ -74,17 +76,18 @@ export const UserManagement = () => {
 
     setShowEditModal(false);
     setSelectedUser(null);
-    toast.success('User updated successfully');
   };
 
-  const handleDelete = () => {
-    if (!selectedUser) return;
 
-    deleteUser(selectedUser.id);
+  const handleDelete = async () => {
+    if (!selectedUser) return;
+    const userId = selectedUser.id || selectedUser._id;
+
+    await deleteUser(userId);
     setShowDeleteModal(false);
     setSelectedUser(null);
-    toast.success('User deleted successfully');
   };
+
 
   const openEditModal = (user) => {
     setSelectedUser(user);
@@ -148,8 +151,8 @@ export const UserManagement = () => {
       {/* Users Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <Table headers={['Name', 'Email', 'Role', 'Status', 'Actions']}>
-          {filteredUsers.map((user) => (
-            <TableRow key={user.id}>
+          {filteredUsers?.map((user) => (
+            <TableRow key={user.id || user._id}>
               <TableCell>
                 <div className="flex items-center gap-3">
                   <img
@@ -261,6 +264,7 @@ export const UserManagement = () => {
             >
               <option value="employee">Employee</option>
               <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
 
@@ -349,16 +353,17 @@ export const UserManagement = () => {
 
           <div>
             <label className="block text-sm font-medium mb-2">Role</label>
-            <select
-              value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="employee">Employee</option>
-              <option value="manager">Manager</option>
-            </select>
+              <select
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="employee">Employee</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+              </select>
           </div>
 
           {formData.role === 'employee' && (
