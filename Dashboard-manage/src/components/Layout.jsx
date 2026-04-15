@@ -93,7 +93,9 @@ export const Layout = () => {
               >
                 {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
               </button>
-              <h1 className="text-xl font-bold">RoleSync</h1>
+              <h1 className="text-2xl font-black font-outfit tracking-tighter text-gray-900 uppercase">
+                NE<span className="text-indigo-600">X</span>US
+              </h1>
             </div>
 
             {/* Right Side Actions */}

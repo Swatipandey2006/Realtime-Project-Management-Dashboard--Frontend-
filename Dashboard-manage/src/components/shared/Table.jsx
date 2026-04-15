@@ -10,7 +10,7 @@ export const Table = ({ headers = [], children }) => {
             {headers.map((header, index) => (
               <th
                 key={index}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-8 py-5 text-left text-[11px] font-black text-gray-400 uppercase tracking-[0.1em] border-b"
               >
                 {header}
               </th>
@@ -18,7 +18,7 @@ export const Table = ({ headers = [], children }) => {
           </tr>
         </thead>
 
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white divide-y divide-gray-50">
           {children}
         </tbody>
       </table>
@@ -31,7 +31,7 @@ export const TableRow = ({ children, onClick }) => {
   return (
     <tr
       onClick={onClick}
-      className={onClick ? "cursor-pointer hover:bg-gray-50" : ""}
+      className={`group transition-all ${onClick ? "cursor-pointer hover:bg-indigo-50/30" : "hover:bg-gray-50/50"}`}
     >
       {children}
     </tr>
@@ -40,7 +40,7 @@ export const TableRow = ({ children, onClick }) => {
 
 export const TableCell = ({ children }) => {
   return (
-    <td className="px-6 py-4 whitespace-nowrap text-sm text-left text-gray-900">
+    <td className="px-8 py-6 whitespace-nowrap text-sm font-medium text-gray-600">
       {children}
     </td>
   );
