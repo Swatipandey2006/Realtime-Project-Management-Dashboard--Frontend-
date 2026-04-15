@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
@@ -11,12 +11,8 @@ export const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
-
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,154 +23,141 @@ export const Login = () => {
       return;
     }
 
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
     setLoading(true);
-    const result = await login(email, password, rememberMe);
+    
+    const result = await login(email.trim(), password, rememberMe);
     setLoading(false);
 
-    if (result.success) {
-      let role = 'employee';
+    if (!result.success) {
+      setError(result.error || 'Login failed');
+    }
+  };
 
-      if (email.includes('admin')) role = 'admin';
-      else if (email.includes('manager')) role = 'manager';
-
+  // Use useEffect for navigation to avoid infinite loops during render
+  useEffect(() => {
+    if (user && !authLoading) {
       const redirectMap = {
         admin: '/admin',
         manager: '/manager',
         employee: '/employee'
       };
-
-      navigate(redirectMap[role]);
-    } else {
-      setError(result.error || 'Login failed');
+      navigate(redirectMap[user.role] || '/');
     }
-  };
+  }, [user, authLoading, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-indigo-600 text-white font-bold">
+        Initializing and connecting to server...
+      </div>
+    );
+  }
+
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-blue-500 to-blue-200 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">RoleSync</h1>
-          <p className="text-gray-600">
-            Real-Time Role-Based Dashboard
-          </p>
+          <h1 className="text-4xl font-extrabold text-white mb-2 tracking-tight">Welcome Back</h1>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-2xl font-semibold mb-6">
-            Sign In
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
+            Sign In to Dashboard
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Email
+              <label className="block text-sm font-semibold mb-2 text-gray-700">
+                Email Address
               </label>
-
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="name@company.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                required
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-semibold mb-2 text-gray-700">
                 Password
               </label>
-
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                  required
                 />
-
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff size={20} />
-                  ) : (
-                    <Eye size={20} />
-                  )}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
             {/* Error */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 rounded-lg">
                 {error}
               </div>
             )}
 
-            {/* Remember me */}
+            {/* Remember Me */}
             <div className="flex items-center">
               <input
+                id="remember"
                 type="checkbox"
                 checked={rememberMe}
-                onChange={e =>
-                  setRememberMe(e.target.checked)
-                }
-                className="w-4 h-4 text-blue-600"
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
               />
-              <label className="ml-2 text-sm text-gray-700">
+              <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
                 Remember me
               </label>
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2.5 rounded-lg flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 px-6 rounded-xl flex items-center justify-center gap-2 font-semibold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                'Signing in...'
+                <>
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Signing In...
+                </>
               ) : (
                 <>
-                  <LogIn size={18} />
+                  <LogIn size={20} />
                   Sign In
                 </>
               )}
             </button>
           </form>
 
-          {/* Demo accounts */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium mb-2">
-              Demo Accounts:
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/signup')}
+                className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Create Account
+              </button>
             </p>
-
-            <div className="text-xs text-gray-600 space-y-1">
-              <p>
-                <strong>Admin:</strong>{' '}
-                admin@rolesync.com / admin123
-              </p>
-              <p>
-                <strong>Manager:</strong>{' '}
-                manager@rolesync.com / manager123
-              </p>
-              <p>
-                <strong>Employee:</strong>{' '}
-                employee@rolesync.com / employee123
-              </p>
-            </div>
           </div>
         </div>
       </div>
